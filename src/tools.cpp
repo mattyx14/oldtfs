@@ -186,51 +186,6 @@ std::string transformToSHA1(const std::string& input)
 	return std::string(hexstring, 40);
 }
 
-std::string generateToken(const std::string& key, uint32_t ticks)
-{
-	// generate message from ticks
-	std::string message(8, 0);
-	for (uint8_t i = 8; --i; ticks >>= 8) {
-		message[i] = static_cast<char>(ticks & 0xFF);
-	}
-
-	// hmac key pad generation
-	std::string iKeyPad(64, 0x36), oKeyPad(64, 0x5C);
-	for (uint8_t i = 0; i < key.length(); ++i) {
-		iKeyPad[i] ^= key[i];
-		oKeyPad[i] ^= key[i];
-	}
-
-	oKeyPad.reserve(84);
-
-	// hmac concat inner pad with message
-	iKeyPad.append(message);
-
-	// hmac first pass
-	message.assign(transformToSHA1(iKeyPad));
-
-	// hmac concat outer pad with message, conversion from hex to int needed
-	for (uint8_t i = 0; i < message.length(); i += 2) {
-		oKeyPad.push_back(static_cast<char>(std::strtoul(message.substr(i, 2).c_str(), nullptr, 16)));
-	}
-
-	// hmac second pass
-	message.assign(transformToSHA1(oKeyPad));
-
-	// calculate hmac offset
-	uint32_t offset = static_cast<uint32_t>(std::strtoul(message.substr(39, 1).c_str(), nullptr, 16) & 0xF);
-
-	// get truncated hash
-	uint32_t truncHash = static_cast<uint32_t>(std::strtoul(message.substr(2 * offset, 8).c_str(), nullptr, 16)) & 0x7FFFFFFF;
-	message.assign(std::to_string(truncHash));
-
-	// return only last AUTHENTICATOR_DIGITS (default 6) digits, also asserts exactly 6 digits
-	uint32_t hashLen = message.length();
-	message.assign(message.substr(hashLen - std::min(hashLen, AUTHENTICATOR_DIGITS)));
-	message.insert(0, AUTHENTICATOR_DIGITS - std::min(hashLen, AUTHENTICATOR_DIGITS), '0');
-	return message;
-}
-
 void replaceString(std::string& str, const std::string& sought, const std::string& replacement)
 {
 	size_t pos = 0;
@@ -574,18 +529,6 @@ AmmoTypeNames ammoTypeNames = {
 	{"largerock",		AMMO_STONE},
 	{"snowball",		AMMO_SNOWBALL},
 	{"powerbolt",		AMMO_BOLT},
-	{"infernalbolt",	AMMO_BOLT},
-	{"huntingspear",	AMMO_SPEAR},
-	{"enchantedspear",	AMMO_SPEAR},
-	{"royalspear",		AMMO_SPEAR},
-	{"sniperarrow",		AMMO_ARROW},
-	{"onyxarrow",		AMMO_ARROW},
-	{"piercingbolt",	AMMO_BOLT},
-	{"etherealspear",	AMMO_SPEAR},
-	{"flasharrow",		AMMO_ARROW},
-	{"flammingarrow",	AMMO_ARROW},
-	{"shiverarrow",		AMMO_ARROW},
-	{"eartharrow",		AMMO_ARROW},
 };
 
 WeaponActionNames weaponActionNames = {
@@ -656,32 +599,6 @@ Skulls_t getSkullType(const std::string& strValue)
 	return SKULL_NONE;
 }
 
-std::string getSpecialSkillName(uint8_t skillid)
-{
-	switch (skillid) {
-		case SPECIALSKILL_CRITICALHITCHANCE:
-			return "critical hit chance";
-
-		case SPECIALSKILL_CRITICALHITAMOUNT:
-			return "critical extra damage";
-
-		case SPECIALSKILL_HITPOINTSLEECHCHANCE:
-			return "hitpoints leech chance";
-
-		case SPECIALSKILL_HITPOINTSLEECHAMOUNT:
-			return "hitpoints leech amount";
-
-		case SPECIALSKILL_MANAPOINTSLEECHCHANCE:
-			return "manapoints leech chance";
-
-		case SPECIALSKILL_MANAPOINTSLEECHAMOUNT:
-			return "mana points leech amount";
-
-		default:
-			return "unknown";
-	}
-}
-
 std::string getSkillName(uint8_t skillid)
 {
 	switch (skillid) {
@@ -715,32 +632,6 @@ std::string getSkillName(uint8_t skillid)
 		default:
 			return "unknown";
 	}
-}
-
-uint32_t adlerChecksum(const uint8_t* data, size_t length)
-{
-	if (length > NETWORKMESSAGE_MAXSIZE) {
-		return 0;
-	}
-
-	const uint16_t adler = 65521;
-
-	uint32_t a = 1, b = 0;
-
-	while (length > 0) {
-		size_t tmp = length > 5552 ? 5552 : length;
-		length -= tmp;
-
-		do {
-			a += *data++;
-			b += a;
-		} while (--tmp);
-
-		a %= adler;
-		b %= adler;
-	}
-
-	return (b << 16) | a;
 }
 
 std::string ucfirst(std::string str)
@@ -813,14 +704,6 @@ size_t combatTypeToIndex(CombatType_t combatType)
 			return 6;
 		case COMBAT_HEALING:
 			return 7;
-		case COMBAT_DROWNDAMAGE:
-			return 8;
-		case COMBAT_ICEDAMAGE:
-			return 9;
-		case COMBAT_HOLYDAMAGE:
-			return 10;
-		case COMBAT_DEATHDAMAGE:
-			return 11;
 		default:
 			return 0;
 	}

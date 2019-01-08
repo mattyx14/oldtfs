@@ -50,7 +50,7 @@ class Container : public Item, public Cylinder
 {
 	public:
 		explicit Container(uint16_t type);
-		Container(uint16_t type, uint16_t size, bool unlocked = true, bool pagination = false);
+		Container(uint16_t type, uint16_t size, bool unlocked = true);
 		explicit Container(Tile* tile);
 		~Container();
 
@@ -112,10 +112,6 @@ class Container : public Item, public Cylinder
 		bool isUnlocked() const {
 			return unlocked;
 		}
-		bool hasPagination() const {
-			return pagination;
-		}
-
 		//cylinder implementations
 		virtual ReturnValue queryAdd(int32_t index, const Thing& thing, uint32_t count,
 				uint32_t flags, Creature* actor = nullptr) const override;
