@@ -271,7 +271,6 @@ private:
 
 	bool debugAssertSent = false;
 	bool acceptPackets = false;
-	bool loggedIn = false;
 };
 
 #endif
