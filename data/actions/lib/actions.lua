@@ -1,5 +1,5 @@
 function destroyItem(player, target, toPosition)
-	if type(target) ~= "userdata" or not target:isItem() then
+	if target == nil or not target:isItem() then
 		return false
 	end
 
@@ -8,7 +8,7 @@ function destroyItem(player, target, toPosition)
 	end
 
 	if toPosition.x == CONTAINER_POSITION then
-		player:sendCancelMessage(RETURNVALUE_NOTPOSSIBLE)
+		player:sendCancelMessage(Game.getReturnMessage(RETURNVALUE_NOTPOSSIBLE))
 		return true
 	end
 
@@ -19,7 +19,7 @@ function destroyItem(player, target, toPosition)
 
 	if math.random(7) == 1 then
 		local item = Game.createItem(destroyId, 1, toPosition)
-		if item then
+		if item ~= nil then
 			item:decay()
 		end
 

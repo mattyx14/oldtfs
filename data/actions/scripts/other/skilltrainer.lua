@@ -6,10 +6,14 @@ local statues = {
 	[18492] = SKILL_MAGLEVEL
 }
 
-function onUse(player, item, fromPosition, target, toPosition, isHotkey)
-	local skill = statues[item:getId()]
+function onUse(player, item, fromPosition, target, toPosition)
+	local skill = statues[item:getActionId()]
+	if not skill then
+		return false
+	end
+
 	if not player:isPremium() then
-		player:sendCancelMessage(RETURNVALUE_YOUNEEDPREMIUMACCOUNT)
+		player:sendTextMessage(MESSAGE_STATUS_SMALL, Game.getReturnMessage(RETURNVALUE_YOUNEEDPREMIUMACCOUNT))
 		return true
 	end
 

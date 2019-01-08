@@ -9,20 +9,11 @@ poison:setParameter(CONDITION_PARAM_STARTVALUE, -5)
 poison:setParameter(CONDITION_PARAM_TICKINTERVAL, 4000)
 poison:setParameter(CONDITION_PARAM_FORCEUPDATE, true)
 
-local fluidMessage = {
-	[3] = "Aah...",
-	[4] = "Urgh!",
-	[5] = "Mmmh.",
-	[7] = "Aaaah...",
-	[10] = "Aaaah...",
-	[11] = "Urgh!",
-	[13] = "Urgh!",
-	[15] = "Aah...",
-	[19] = "Urgh!",
-	[43] = "Aaaah..."
-}
+local fluidType = {3, 4, 5, 7, 10, 11, 13, 15, 19}
+local fluidMessage = {"Aah...", "Urgh!", "Mmmh.", "Aaaah...", "Aaaah...", "Urgh!", "Urgh!", "Aah...", "Urgh!"}
 
-function onUse(player, item, fromPosition, target, toPosition, isHotkey)
+function onUse(player, item, fromPosition, target, toPosition)
+
 	local targetItemType = ItemType(target.itemid)
 	if targetItemType and targetItemType:isFluidContainer() then
 		if target.type == 0 and item.type ~= 0 then
@@ -35,39 +26,45 @@ function onUse(player, item, fromPosition, target, toPosition, isHotkey)
 			return true
 		end
 	end
-
-	if target.itemid == 1 then
-		if item.type == 0 then
+    local v = item.type
+	if target:isCreature() then
+		if v == 0 then
 			player:sendTextMessage(MESSAGE_STATUS_SMALL, "It is empty.")
-		elseif target.uid == player.uid then
-			if table.contains({3, 15, 43}, item.type) then
-				player:addCondition(drunk)
-			elseif item.type == 4 then
-				player:addCondition(poison)
-			elseif item.type == 7 then
-				player:addMana(math.random(50, 150))
-				fromPosition:sendMagicEffect(CONST_ME_MAGIC_BLUE)
-			elseif item.type == 10 then
-				player:addHealth(60)
-				fromPosition:sendMagicEffect(CONST_ME_MAGIC_BLUE)
-			end
-			player:say(fluidMessage[item.type] or "Gulp.", TALKTYPE_MONSTER_SAY)
+		elseif target == player then
 			item:transform(item:getId(), 0)
+			if v == 3 or v == 15 then
+				player:addCondition(drunk)
+			elseif v == 4 then
+				player:addCondition(poison)
+			elseif v == 7 then
+				player:addMana(math.random(50, 150))
+				player:getPosition():sendMagicEffect(CONST_ME_MAGIC_BLUE)
+			elseif v == 10 then
+				player:addHealth(60)
+				player:getPosition():sendMagicEffect(CONST_ME_MAGIC_BLUE)
+			end
+			for i = 0, #fluidType do
+				if v == fluidType[i] then
+					player:say(fluidMessage[i], 1)
+					return true
+				end
+			end
+			player:say("Gulp.", 1)
 		else
-			Game.createItem(2016, item.type, toPosition):decay()
+			Game.createItem(2016, v, toPosition):decay()
 			item:transform(item:getId(), 0)
 		end
 	else
 		local fluidSource = targetItemType and targetItemType:getFluidSource() or 0
 		if fluidSource ~= 0 then
 			item:transform(item:getId(), fluidSource)
-		elseif item.type == 0 then
+		elseif v == 0 then
 			player:sendTextMessage(MESSAGE_STATUS_SMALL, "It is empty.")
 		else
 			if toPosition.x == CONTAINER_POSITION then
 				toPosition = player:getPosition()
 			end
-			Game.createItem(2016, item.type, toPosition):decay()
+			Game.createItem(2016, v, toPosition):decay()
 			item:transform(item:getId(), 0)
 		end
 	end

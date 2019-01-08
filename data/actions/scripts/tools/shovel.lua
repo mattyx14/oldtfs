@@ -1,5 +1,9 @@
 local holes = {468, 481, 483}
-function onUse(player, item, fromPosition, target, toPosition, isHotkey)
+function onUse(player, item, fromPosition, target, toPosition)
+	if toPosition.x == CONTAINER_POSITION then
+		return false
+	end
+
 	local tile = Tile(toPosition)
 	if not tile then
 		return false
@@ -11,7 +15,7 @@ function onUse(player, item, fromPosition, target, toPosition, isHotkey)
 	end
 
 	local groundId = ground:getId()
-	if table.contains(holes, groundId) then
+	if isInArray(holes, groundId) then
 		ground:transform(groundId + 1)
 		ground:decay()
 
