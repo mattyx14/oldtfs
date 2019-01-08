@@ -54,7 +54,7 @@ void MonsterType::createLoot(Container* corpse)
 	}
 
 	Player* owner = g_game.getPlayerByID(corpse->getCorpseOwner());
-	if (!owner || owner->getStaminaMinutes() > 840) {
+	if (!owner) {
 		for (auto it = info.lootItems.rbegin(), end = info.lootItems.rend(); it != end; ++it) {
 			auto itemList = createLootItem(*it);
 			if (itemList.empty()) {
@@ -76,24 +76,24 @@ void MonsterType::createLoot(Container* corpse)
 			}
 		}
 
-		if (owner) {
+		if (owner) {	
 			std::ostringstream ss;
 			ss << "Loot of " << nameDescription << ": " << corpse->getContentDescription();
 
 			if (owner->getParty()) {
 				owner->getParty()->broadcastPartyLoot(ss.str());
 			} else {
-				owner->sendTextMessage(MESSAGE_LOOT, ss.str());
+				owner->sendTextMessage(MESSAGE_INFO_DESCR, ss.str());
 			}
 		}
 	} else {
 		std::ostringstream ss;
-		ss << "Loot of " << nameDescription << ": nothing (due to low stamina)";
+		ss << "Loot of " << nameDescription << ": nothing";
 
 		if (owner->getParty()) {
 			owner->getParty()->broadcastPartyLoot(ss.str());
 		} else {
-			owner->sendTextMessage(MESSAGE_LOOT, ss.str());
+			owner->sendTextMessage(MESSAGE_INFO_DESCR, ss.str());
 		}
 	}
 

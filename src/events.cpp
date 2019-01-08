@@ -633,7 +633,7 @@ void Events::eventPlayerOnReportRuleViolation(Player* player, const std::string&
 	scriptInterface.callVoidFunction(6);
 }
 
-bool Events::eventPlayerOnReportBug(Player* player, const std::string& message, const Position& position, uint8_t category)
+bool Events::eventPlayerOnReportBug(Player* player, const std::string& message, const Position& position)
 {
 	// Player:onReportBug(message, position, category)
 	if (info.playerOnReportBug == -1) {
@@ -656,9 +656,8 @@ bool Events::eventPlayerOnReportBug(Player* player, const std::string& message, 
 
 	LuaScriptInterface::pushString(L, message);
 	LuaScriptInterface::pushPosition(L, position);
-	lua_pushnumber(L, category);
 
-	return scriptInterface.callFunction(4);
+	return scriptInterface.callFunction(3);
 }
 
 bool Events::eventPlayerOnTurn(Player* player, Direction direction)

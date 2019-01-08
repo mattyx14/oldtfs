@@ -539,11 +539,6 @@ bool Spell::playerSpellCheck(Player* player) const
 		return false;
 	}
 
-	if (aggressive && (range < 1 || (range > 0 && !player->getAttackedCreature())) && player->getSkull() == SKULL_BLACK) {
-		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
-		return false;
-	}
-
 	if (aggressive && player->hasCondition(CONDITION_PACIFIED)) {
 		player->sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
 		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
@@ -1138,7 +1133,7 @@ ReturnValue RuneSpell::canExecuteAction(const Player* player, const Position& to
 	return RETURNVALUE_NOERROR;
 }
 
-bool RuneSpell::executeUse(Player* player, Item* item, const Position&, Thing* target, const Position& toPosition, bool isHotkey)
+bool RuneSpell::executeUse(Player* player, Item* item, const Position&, Thing* target, const Position& toPosition)
 {
 	if (!playerRuneSpellCheck(player, toPosition)) {
 		return false;
@@ -1169,7 +1164,7 @@ bool RuneSpell::executeUse(Player* player, Item* item, const Position&, Thing* t
 		var.pos = toPosition;
 	}
 
-	if (!internalCastSpell(player, var, isHotkey)) {
+	if (!internalCastSpell(player, var, false)) {
 		return false;
 	}
 

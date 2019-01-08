@@ -855,6 +855,9 @@ class Item : virtual public Thing
 		bool isStackable() const {
 			return items[id].stackable;
 		}
+		bool isRune() const {
+			return items[id].isRune();
+		}
 		bool isAlwaysOnTop() const {
 			return items[id].alwaysOnTop;
 		}
@@ -956,8 +959,6 @@ class Item : virtual public Thing
 		bool isCleanable() const {
 			return !loadedFromMap && canRemove() && isPickupable() && !hasAttribute(ITEM_ATTRIBUTE_UNIQUEID) && !hasAttribute(ITEM_ATTRIBUTE_ACTIONID);
 		}
-
-		bool hasMarketAttributes() const;
 
 		std::unique_ptr<ItemAttributes>& getAttributes() {
 			if (!attributes) {

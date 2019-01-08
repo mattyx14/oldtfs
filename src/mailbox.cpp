@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+
 #include "otpch.h"
 
 #include "mailbox.h"
@@ -91,45 +92,53 @@ void Mailbox::postRemoveNotification(Thing* thing, const Cylinder* newParent, in
 bool Mailbox::sendItem(Item* item) const
 {
 	std::string receiver;
-	if (!getReceiver(item, receiver)) {
+	uint32_t depotId = 0;
+	if (!getReceiver(item, receiver, depotId)) {
 		return false;
 	}
 
 	/**No need to continue if its still empty**/
-	if (receiver.empty()) {
+	if (receiver.empty() || depotId == 0) {
 		return false;
 	}
 
 	Player* player = g_game.getPlayerByName(receiver);
 	if (player) {
-		if (g_game.internalMoveItem(item->getParent(), player->getInbox(), INDEX_WHEREEVER,
-		                            item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
-			g_game.transformItem(item, item->getID() + 1);
-			player->onReceiveMail();
-			return true;
+		DepotLocker* depotLocker = player->getDepotLocker(depotId);
+		if (depotLocker) {
+			if (g_game.internalMoveItem(item->getParent(), depotLocker, INDEX_WHEREEVER,
+				item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
+				g_game.transformItem(item, item->getID() + 1);
+				player->onReceiveMail();
+				return true;
+			}
 		}
-	} else {
+	}
+	else {
 		Player tmpPlayer(nullptr);
 		if (!IOLoginData::loadPlayerByName(&tmpPlayer, receiver)) {
 			return false;
 		}
 
-		if (g_game.internalMoveItem(item->getParent(), tmpPlayer.getInbox(), INDEX_WHEREEVER,
-		                            item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
-			g_game.transformItem(item, item->getID() + 1);
-			IOLoginData::savePlayer(&tmpPlayer);
-			return true;
+		DepotLocker* depotLocker = tmpPlayer.getDepotLocker(depotId);
+		if (depotLocker) {
+			if (g_game.internalMoveItem(item->getParent(), depotLocker, INDEX_WHEREEVER,
+				item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
+				g_game.transformItem(item, item->getID() + 1);
+				IOLoginData::savePlayer(&tmpPlayer);
+				return true;
+			}
 		}
 	}
 	return false;
 }
 
-bool Mailbox::getReceiver(Item* item, std::string& name) const
+bool Mailbox::getReceiver(Item* item, std::string& name, uint32_t& depotId) const
 {
 	const Container* container = item->getContainer();
 	if (container) {
 		for (Item* containerItem : container->getItemList()) {
-			if (containerItem->getID() == ITEM_LABEL && getReceiver(containerItem, name)) {
+			if (containerItem->getID() == ITEM_LABEL && getReceiver(containerItem, name, depotId)) {
 				return true;
 			}
 		}
@@ -141,9 +150,33 @@ bool Mailbox::getReceiver(Item* item, std::string& name) const
 		return false;
 	}
 
-	name = getFirstLine(text);
-	trimString(name);
-	return true;
+	std::string temp;
+	std::istringstream iss(item->getText(), std::istringstream::in);
+	std::string strTown = "";
+	uint32_t curLine = 1;
+
+	while (getline(iss, temp, '\n')) {
+		if (curLine == 1) {
+			name = temp;
+		}
+		else if (curLine == 2) {
+			strTown = temp;
+		}
+		else {
+			break;
+		}
+
+		++curLine;
+	}
+
+	trimString(strTown);
+	Town* town = g_game.map.towns.getTown(strTown);
+	if (town) {
+		depotId = town->getID();
+		return true;
+	}
+
+	return false;
 }
 
 bool Mailbox::canSend(const Item* item)

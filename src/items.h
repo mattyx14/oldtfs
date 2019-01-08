@@ -154,8 +154,7 @@ enum ItemParseAttributes_t {
 	ITEM_PARSE_REPLACEABLE,
 	ITEM_PARSE_PARTNERDIRECTION,
 	ITEM_PARSE_LEVELDOOR,
-	ITEM_PARSE_MALETRANSFORMTO,
-	ITEM_PARSE_FEMALETRANSFORMTO,
+	ITEM_PARSE_SLEEPER,
 	ITEM_PARSE_TRANSFORMTO,
 	ITEM_PARSE_DESTROYTO,
 	ITEM_PARSE_ELEMENTICE,
@@ -324,7 +323,7 @@ class ItemType
 
 		CombatType_t combatType = COMBAT_NONE;
 
-		uint16_t transformToOnUse[2] = {0, 0};
+		uint16_t transformToOnUse = 0;
 		uint16_t transformToFree = 0;
 		uint16_t destroyTo = 0;
 		uint16_t maxTextLen = 0;
@@ -413,11 +412,6 @@ class Items
 		bool loadFromXml();
 		void parseItemNode(const pugi::xml_node& itemNode, uint16_t id);
 
-		void buildInventoryList();
-		const InventoryVector& getInventory() const {
-			return inventory;
-		}
-
 		size_t size() const {
 			return items.size();
 		}
@@ -427,6 +421,5 @@ class Items
 	private:
 		std::map<uint16_t, uint16_t> reverseItemMap;
 		std::vector<ItemType> items;
-		InventoryVector inventory;
 };
 #endif

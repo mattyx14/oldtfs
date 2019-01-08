@@ -641,34 +641,6 @@ class LuaScriptInterface
 		static int luaNetworkMessageSkipBytes(lua_State* L);
 		static int luaNetworkMessageSendToPlayer(lua_State* L);
 
-		// ModalWindow
-		static int luaModalWindowCreate(lua_State* L);
-		static int luaModalWindowDelete(lua_State* L);
-
-		static int luaModalWindowGetId(lua_State* L);
-		static int luaModalWindowGetTitle(lua_State* L);
-		static int luaModalWindowGetMessage(lua_State* L);
-
-		static int luaModalWindowSetTitle(lua_State* L);
-		static int luaModalWindowSetMessage(lua_State* L);
-
-		static int luaModalWindowGetButtonCount(lua_State* L);
-		static int luaModalWindowGetChoiceCount(lua_State* L);
-
-		static int luaModalWindowAddButton(lua_State* L);
-		static int luaModalWindowAddChoice(lua_State* L);
-
-		static int luaModalWindowGetDefaultEnterButton(lua_State* L);
-		static int luaModalWindowSetDefaultEnterButton(lua_State* L);
-
-		static int luaModalWindowGetDefaultEscapeButton(lua_State* L);
-		static int luaModalWindowSetDefaultEscapeButton(lua_State* L);
-
-		static int luaModalWindowHasPriority(lua_State* L);
-		static int luaModalWindowSetPriority(lua_State* L);
-
-		static int luaModalWindowSendToPlayer(lua_State* L);
-
 		// Item
 		static int luaItemCreate(lua_State* L);
 
@@ -837,7 +809,6 @@ class LuaScriptInterface
 		static int luaPlayerGetFreeCapacity(lua_State* L);
 
 		static int luaPlayerGetDepotChest(lua_State* L);
-		static int luaPlayerGetInbox(lua_State* L);
 
 		static int luaPlayerGetSkullTime(lua_State* L);
 		static int luaPlayerSetSkullTime(lua_State* L);
@@ -899,9 +870,6 @@ class LuaScriptInterface
 		static int luaPlayerGetGroup(lua_State* L);
 		static int luaPlayerSetGroup(lua_State* L);
 
-		static int luaPlayerGetStamina(lua_State* L);
-		static int luaPlayerSetStamina(lua_State* L);
-
 		static int luaPlayerGetSoul(lua_State* L);
 		static int luaPlayerAddSoul(lua_State* L);
 		static int luaPlayerGetMaxSoul(lua_State* L);
@@ -933,17 +901,6 @@ class LuaScriptInterface
 
 		static int luaPlayerGetParty(lua_State* L);
 
-		static int luaPlayerAddOutfit(lua_State* L);
-		static int luaPlayerAddOutfitAddon(lua_State* L);
-		static int luaPlayerRemoveOutfit(lua_State* L);
-		static int luaPlayerRemoveOutfitAddon(lua_State* L);
-		static int luaPlayerHasOutfit(lua_State* L);
-		static int luaPlayerSendOutfitWindow(lua_State* L);
-
-		static int luaPlayerAddMount(lua_State* L);
-		static int luaPlayerRemoveMount(lua_State* L);
-		static int luaPlayerHasMount(lua_State* L);
-
 		static int luaPlayerGetPremiumDays(lua_State* L);
 		static int luaPlayerAddPremiumDays(lua_State* L);
 		static int luaPlayerRemovePremiumDays(lua_State* L);
@@ -957,7 +914,6 @@ class LuaScriptInterface
 		static int luaPlayerForgetSpell(lua_State* L);
 		static int luaPlayerHasLearnedSpell(lua_State* L);
 
-		static int luaPlayerSendTutorial(lua_State* L);
 		static int luaPlayerAddMapMark(lua_State* L);
 
 		static int luaPlayerSave(lua_State* L);
@@ -1020,9 +976,6 @@ class LuaScriptInterface
 		static int luaNpcIsNpc(lua_State* L);
 
 		static int luaNpcSetMasterPos(lua_State* L);
-
-		static int luaNpcGetSpeechBubble(lua_State* L);
-		static int luaNpcSetSpeechBubble(lua_State* L);
 
 		// Guild
 		static int luaGuildCreate(lua_State* L);

@@ -257,7 +257,7 @@ Action* Actions::getAction(const Item* item)
 	return g_spells->getRuneSpell(item->getID());
 }
 
-ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_t index, Item* item, bool isHotkey)
+ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_t index, Item* item)
 {
 	if (Door* door = item->getDoor()) {
 		if (!door->canUse(player)) {
@@ -268,7 +268,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	Action* action = getAction(item);
 	if (action) {
 		if (action->isScripted()) {
-			if (action->executeUse(player, item, pos, nullptr, pos, isHotkey)) {
+			if (action->executeUse(player, item, pos, nullptr, pos)) {
 				return RETURNVALUE_NOERROR;
 			}
 
@@ -276,7 +276,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 				return RETURNVALUE_CANNOTUSETHISOBJECT;
 			}
 		} else if (action->function) {
-			if (action->function(player, item, pos, nullptr, pos, isHotkey)) {
+			if (action->function(player, item, pos, nullptr, pos)) {
 				return RETURNVALUE_NOERROR;
 			}
 		}
@@ -287,11 +287,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 			return RETURNVALUE_CANNOTUSETHISOBJECT;
 		}
 
-		if (bed->trySleep(player)) {
-			player->setBedItem(bed);
-			g_game.sendOfflineTrainingDialog(player);
-		}
-
+		bed->sleep(player);
 		return RETURNVALUE_NOERROR;
 	}
 
@@ -342,16 +338,12 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	return RETURNVALUE_CANNOTUSETHISOBJECT;
 }
 
-bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* item, bool isHotkey)
+bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* item)
 {
 	player->setNextAction(OTSYS_TIME() + g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL));
 	player->stopWalk();
 
-	if (isHotkey) {
-		showUseHotkeyMessage(player, item, player->getItemTypeCount(item->getID(), -1));
-	}
-
-	ReturnValue ret = internalUseItem(player, pos, index, item, isHotkey);
+	ReturnValue ret = internalUseItem(player, pos, index, item);
 	if (ret != RETURNVALUE_NOERROR) {
 		player->sendCancelMessage(ret);
 		return false;
@@ -360,7 +352,7 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 }
 
 bool Actions::useItemEx(Player* player, const Position& fromPos, const Position& toPos,
-                        uint8_t toStackPos, Item* item, bool isHotkey, Creature* creature/* = nullptr*/)
+                        uint8_t toStackPos, Item* item, Creature* creature/* = nullptr*/)
 {
 	player->setNextAction(OTSYS_TIME() + g_config.getNumber(ConfigManager::EX_ACTIONS_DELAY_INTERVAL));
 	player->stopWalk();
@@ -377,32 +369,13 @@ bool Actions::useItemEx(Player* player, const Position& fromPos, const Position&
 		return false;
 	}
 
-	if (isHotkey) {
-		showUseHotkeyMessage(player, item, player->getItemTypeCount(item->getID(), -1));
-	}
-
-	if (!action->executeUse(player, item, fromPos, action->getTarget(player, creature, toPos, toStackPos), toPos, isHotkey)) {
+	if (!action->executeUse(player, item, fromPos, action->getTarget(player, creature, toPos, toStackPos), toPos)) {
 		if (!action->hasOwnErrorHandler()) {
 			player->sendCancelMessage(RETURNVALUE_CANNOTUSETHISOBJECT);
 		}
 		return false;
 	}
 	return true;
-}
-
-void Actions::showUseHotkeyMessage(Player* player, const Item* item, uint32_t count)
-{
-	std::ostringstream ss;
-
-	const ItemType& it = Item::items[item->getID()];
-	if (!it.showCount) {
-		ss << "Using one of " << item->getName() << "...";
-	} else if (count == 1) {
-		ss << "Using the last " << item->getName() << "...";
-	} else {
-		ss << "Using one of " << count << ' ' << item->getPluralName() << "...";
-	}
-	player->sendTextMessage(MESSAGE_INFO_DESCR, ss.str());
 }
 
 Action::Action(LuaScriptInterface* interface) :
@@ -430,28 +403,19 @@ bool Action::configureEvent(const pugi::xml_node& node)
 
 namespace {
 
-bool enterMarket(Player* player, Item*, const Position&, Thing*, const Position&, bool)
-{
-	if (player->getLastDepotId() == -1) {
-		return false;
-	}
+	bool enterMarket(Player* player, Item*, const Position&, Thing*, const Position&, bool)
+	{
+		if (player->getLastDepotId() == -1) {
+			return false;
+		}
 
-	player->sendMarketEnter(player->getLastDepotId());
-	return true;
-}
+		return true;
+	}
 
 }
 
 bool Action::loadFunction(const pugi::xml_attribute& attr)
 {
-	const char* functionName = attr.as_string();
-	if (strcasecmp(functionName, "market") == 0) {
-		function = enterMarket;
-	} else {
-		std::cout << "[Warning - Action::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
-		return false;
-	}
-
 	scripted = false;
 	return true;
 }
@@ -478,7 +442,7 @@ Thing* Action::getTarget(Player* player, Creature* targetCreature, const Positio
 	return g_game.internalGetThing(player, toPosition, toStackPos, 0, STACKPOS_USETARGET);
 }
 
-bool Action::executeUse(Player* player, Item* item, const Position& fromPosition, Thing* target, const Position& toPosition, bool isHotkey)
+bool Action::executeUse(Player* player, Item* item, const Position& fromPosition, Thing* target, const Position& toPosition)
 {
 	//onUse(player, item, fromPosition, target, toPosition, isHotkey)
 	if (!scriptInterface->reserveScriptEnv()) {
@@ -502,6 +466,5 @@ bool Action::executeUse(Player* player, Item* item, const Position& fromPosition
 	LuaScriptInterface::pushThing(L, target);
 	LuaScriptInterface::pushPosition(L, toPosition);
 
-	LuaScriptInterface::pushBoolean(L, isHotkey);
-	return scriptInterface->callFunction(6);
+	return scriptInterface->callFunction(5);
 }

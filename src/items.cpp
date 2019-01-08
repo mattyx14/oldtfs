@@ -133,10 +133,7 @@ const std::unordered_map<std::string, ItemParseAttributes_t> ItemParseAttributes
 	{"replaceable", ITEM_PARSE_REPLACEABLE},
 	{"partnerdirection", ITEM_PARSE_PARTNERDIRECTION},
 	{"leveldoor", ITEM_PARSE_LEVELDOOR},
-	{"maletransformto", ITEM_PARSE_MALETRANSFORMTO},
-	{"malesleeper", ITEM_PARSE_MALETRANSFORMTO},
-	{"femaletransformto", ITEM_PARSE_FEMALETRANSFORMTO},
-	{"femalesleeper", ITEM_PARSE_FEMALETRANSFORMTO},
+	{"sleeper", ITEM_PARSE_SLEEPER},
 	{"transformto", ITEM_PARSE_TRANSFORMTO},
 	{"destroyto", ITEM_PARSE_DESTROYTO},
 	{"elementice", ITEM_PARSE_ELEMENTICE},
@@ -286,10 +283,10 @@ bool Items::loadFromOtb(const std::string& file)
 
 	if (majorVersion == 0xFFFFFFFF) {
 		std::cout << "[Warning - Items::loadFromOtb] items.otb using generic client version." << std::endl;
-	} else if (majorVersion != 3) {
-		std::cout << "Old version detected, a newer version of items.otb is required." << std::endl;
+	} else if (majorVersion > 2) {
+		std::cout << "New version detected, an older version of items.otb is required." << std::endl;
 		return false;
-	} else if (minorVersion < CLIENT_VERSION_1098) {
+	} else if (minorVersion < CLIENT_VERSION_740) {
 		std::cout << "A newer version of items.otb is required." << std::endl;
 		return false;
 	}
@@ -458,7 +455,6 @@ bool Items::loadFromOtb(const std::string& file)
 		iType.rotatable = hasBitSet(FLAG_ROTATABLE, flags);
 		iType.canReadText = hasBitSet(FLAG_READABLE, flags);
 		iType.lookThrough = hasBitSet(FLAG_LOOKTHROUGH, flags);
-		iType.isAnimation = hasBitSet(FLAG_ANIMATION, flags);
 		// iType.walkStack = !hasBitSet(FLAG_FULLTILE, flags);
 		iType.forceUse = hasBitSet(FLAG_FORCEUSE, flags);
 
@@ -509,31 +505,7 @@ bool Items::loadFromXml()
 			parseItemNode(itemNode, id++);
 		}
 	}
-
-	buildInventoryList();
 	return true;
-}
-
-void Items::buildInventoryList()
-{
-	inventory.reserve(items.size());
-	for (const auto& type: items) {
-		if (type.weaponType != WEAPON_NONE || type.ammoType != AMMO_NONE ||
-			type.attack != 0 || type.defense != 0 ||
-			type.extraDefense != 0 || type.armor != 0 ||
-			type.slotPosition & SLOTP_NECKLACE ||
-			type.slotPosition & SLOTP_RING ||
-			type.slotPosition & SLOTP_AMMO ||
-			type.slotPosition & SLOTP_FEET ||
-			type.slotPosition & SLOTP_HEAD ||
-			type.slotPosition & SLOTP_ARMOR ||
-			type.slotPosition & SLOTP_LEGS)
-		{
-			inventory.push_back(type.clientId);
-		}
-	}
-	inventory.shrink_to_fit();
-	std::sort(inventory.begin(), inventory.end());
 }
 
 void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
@@ -1216,31 +1188,16 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 					break;
 				}
 
-				case ITEM_PARSE_MALETRANSFORMTO: {
+				case ITEM_PARSE_SLEEPER: {
 					uint16_t value = pugi::cast<uint16_t>(valueAttribute.value());
-					it.transformToOnUse[PLAYERSEX_MALE] = value;
+					it.transformToOnUse = value;
 					ItemType& other = getItemType(value);
 					if (other.transformToFree == 0) {
 						other.transformToFree = it.id;
 					}
 
-					if (it.transformToOnUse[PLAYERSEX_FEMALE] == 0) {
-						it.transformToOnUse[PLAYERSEX_FEMALE] = value;
-					}
-					break;
-				}
-
-				case ITEM_PARSE_FEMALETRANSFORMTO: {
-					uint16_t value = pugi::cast<uint16_t>(valueAttribute.value());
-					it.transformToOnUse[PLAYERSEX_FEMALE] = value;
-
-					ItemType& other = getItemType(value);
-					if (other.transformToFree == 0) {
-						other.transformToFree = it.id;
-					}
-
-					if (it.transformToOnUse[PLAYERSEX_MALE] == 0) {
-						it.transformToOnUse[PLAYERSEX_MALE] = value;
+					if (it.transformToOnUse == 0) {
+						it.transformToOnUse = value;
 					}
 					break;
 				}
@@ -1306,7 +1263,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 	}
 
 	//check bed items
-	if ((it.transformToFree != 0 || it.transformToOnUse[PLAYERSEX_FEMALE] != 0 || it.transformToOnUse[PLAYERSEX_MALE] != 0) && it.type != ITEM_TYPE_BED) {
+	if ((it.transformToFree != 0 || it.transformToOnUse != 0 || it.transformToOnUse != 0) && it.type != ITEM_TYPE_BED) {
 		std::cout << "[Warning - Items::parseItemNode] Item " << it.id << " is not set as a bed-type" << std::endl;
 	}
 }
