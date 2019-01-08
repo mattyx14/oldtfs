@@ -50,4 +50,5 @@
 	<!-- test talkactions -->
 	<talkaction words="!z" separator=" " script="magiceffect.lua" />
 	<talkaction words="!x" separator=" " script="animationeffect.lua" />
+	<talkaction words="!s" separator=" " script="animtext.lua" />
 </talkactions>

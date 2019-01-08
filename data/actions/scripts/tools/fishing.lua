@@ -3,11 +3,11 @@ local lootTrash = {2234, 2238, 2376, 2509, 2667}
 local lootCommon = {2152, 2167, 2168, 2669, 7588, 7589}
 local lootRare = {2143, 2146, 2149, 7158, 7159}
 local lootVeryRare = {7632, 7633, 10220}
-local useWorms = false
+local useWorms = true
 
-function onUse(player, item, fromPosition, target, toPosition)
+function onUse(player, item, fromPosition, target, toPosition, isHotkey)
 	local targetId = target.itemid
-	if not isInArray(waterIds, target.itemid) then
+	if not table.contains(waterIds, target.itemid) then
 		return false
 	end
 
