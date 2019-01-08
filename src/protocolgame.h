@@ -138,17 +138,16 @@ private:
 	void parseOpenPrivateChannel(NetworkMessage& msg);
 	void parseCloseChannel(NetworkMessage& msg);
 
-	//Send functions
-	void sendChannelMessage(const std::string& author, const std::string& text, SpeakClasses type, uint16_t channel);
-	void sendClosePrivate(uint16_t channelId);
-	void sendCreatePrivateChannel(uint16_t channelId, const std::string& channelName);
-	void sendChannelsDialog();
-	void sendChannel(uint16_t channelId, const std::string& channelName);
-	void sendOpenPrivateChannel(const std::string& receiver);
-	void sendToChannel(const Creature* creature, SpeakClasses type, const std::string& text, uint16_t channelId);
-	void sendPrivateMessage(const Player* speaker, SpeakClasses type, const std::string& text);
-	void sendIcons(uint16_t icons);
-	void sendFYIBox(const std::string& message);
+		//Send functions
+		void sendChannelMessage(const std::string& author, const std::string& text, SpeakClasses type, uint16_t channel);
+		void sendClosePrivate(uint16_t channelId);
+		void sendCreatePrivateChannel(uint16_t channelId, const std::string& channelName);
+		void sendChannelsDialog();
+		void sendChannel(uint16_t channelId, const std::string& channelName);
+		void sendOpenPrivateChannel(const std::string& receiver);
+		void sendToChannel(const Creature* creature, SpeakClasses type, const std::string& text, uint16_t channelId);
+		void sendPrivateMessage(const Player* speaker, SpeakClasses type, const std::string& text);
+		void sendIcons(uint16_t icons);
 
 	void sendDistanceShoot(const Position& from, const Position& to, uint8_t type);
 	void sendMagicEffect(const Position& pos, uint8_t type);
@@ -163,9 +162,7 @@ private:
 	void sendCancelTarget();
 	void sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit);
 	void sendStats();
-	void sendTextMessage(MessageClasses mclass, const std::string& message);
 	void sendTextMessage(const TextMessage& message);
-	void sendAddMarker(const Position& pos, uint8_t markType, const std::string& desc);
 
 	void sendCreatureShield(const Creature* creature);
 	void sendCreatureSkull(const Creature* creature);
@@ -274,6 +271,7 @@ private:
 
 	bool debugAssertSent = false;
 	bool acceptPackets = false;
+	bool loggedIn = false;
 };
 
 #endif

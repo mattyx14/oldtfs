@@ -445,7 +445,7 @@ void Player::addSkillAdvance(skills_t skill, uint64_t count)
 		skills[skill].percent = 0;
 
 		std::ostringstream ss;
-		ss << "You advanced to " << getSkillName(skill) << " level " << skills[skill].level << '.';
+		ss << "You advanced in " << getSkillName(skill) << '.';
 		sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
 
 		g_creatureEvents->playerAdvance(this, skill, (skills[skill].level - 1), skills[skill].level);
@@ -1452,6 +1452,8 @@ void Player::addExperience(Creature* source, uint64_t exp, bool sendText/* = fal
 	}
 
 	if (prevLevel != level) {
+		health = healthMax;
+		mana = manaMax;
 
 		updateBaseSpeed();
 		setBaseSpeed(getBaseSpeed());
@@ -1704,29 +1706,24 @@ uint32_t Player::getIP() const
 void Player::death(Creature* lastHitCreature)
 {
 	loginPosition = town->getTemplePosition();
+	sendTextMessage(MESSAGE_EVENT_ADVANCE, "You are dead.");
 
 	if (skillLoss) {
-		uint8_t unfairFightReduction = 100;
 		bool lastHitPlayer = Player::lastHitIsPlayer(lastHitCreature);
 
-		if (lastHitPlayer) {
-			uint32_t sumLevels = 0;
-			uint32_t inFightTicks = g_config.getNumber(ConfigManager::PZ_LOCKED);
-			for (const auto& it : damageMap) {
-				CountBlock_t cb = it.second;
-				if ((OTSYS_TIME() - cb.ticks) <= inFightTicks) {
-					Player* damageDealer = g_game.getPlayerByID(it.first);
-					if (damageDealer) {
-						sumLevels += damageDealer->getLevel();
+			if (lastHitPlayer) {
+				uint32_t sumLevels = 0;
+				uint32_t inFightTicks = g_config.getNumber(ConfigManager::PZ_LOCKED);
+				for (const auto& it : damageMap) {
+					CountBlock_t cb = it.second;
+					if ((OTSYS_TIME() - cb.ticks) <= inFightTicks) {
+						Player* damageDealer = g_game.getPlayerByID(it.first);
+						if (damageDealer) {
+							sumLevels += damageDealer->getLevel();
+						}
 					}
 				}
 			}
-
-			if (sumLevels > level) {
-				double reduce = level / static_cast<double>(sumLevels);
-				unfairFightReduction = std::max<uint8_t>(20, std::floor((reduce * 100) + 0.5));
-			}
-		}
 
 		//Magic level loss
 		uint64_t sumMana = 0;
@@ -1739,7 +1736,7 @@ void Player::death(Creature* lastHitCreature)
 
 		sumMana += manaSpent;
 
-		double deathLossPercent = getLostPercent() * (unfairFightReduction / 100.);
+		double deathLossPercent = getLostPercent();
 
 		lostMana = static_cast<uint64_t>(sumMana * deathLossPercent);
 
@@ -1878,11 +1875,12 @@ void Player::death(Creature* lastHitCreature)
 
 bool Player::dropCorpse(Creature* lastHitCreature, Creature* mostDamageCreature, bool lastHitUnjustified, bool mostDamageUnjustified)
 {
-	if (getZone() == ZONE_PVP) {
-		setDropLoot(true);
-		return false;
+	if (getZone() != ZONE_PVP || !Player::lastHitIsPlayer(lastHitCreature)) {
+		return Creature::dropCorpse(lastHitCreature, mostDamageCreature, lastHitUnjustified, mostDamageUnjustified);
 	}
-	return Creature::dropCorpse(lastHitCreature, mostDamageCreature, lastHitUnjustified, mostDamageUnjustified);
+
+	setDropLoot(true);
+	return false;
 }
 
 Item* Player::getCorpse(Creature* lastHitCreature, Creature* mostDamageCreature)
@@ -1921,6 +1919,7 @@ void Player::addInFightTicks(bool pzlock /*= false*/)
 
 	if (pzlock) {
 		pzLocked = true;
+		sendIcons();
 	}
 
 	Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_INFIGHT, g_config.getNumber(ConfigManager::PZ_LOCKED), 0);
@@ -3422,7 +3421,7 @@ void Player::addUnjustifiedDead(const Player* attacked)
 		return;
 	}
 
-	sendTextMessage(MESSAGE_EVENT_ADVANCE, "Warning! The murder of " + attacked->getName() + " was not justified.");
+	sendTextMessage(MESSAGE_STATUS_WARNING, "Warning! The murder of " + attacked->getName() + " was not justified.");
 
 	skullTicks += g_config.getNumber(ConfigManager::FRAG_TIME);
 
@@ -3725,7 +3724,7 @@ bool Player::addOfflineTrainingTries(skills_t skill, uint64_t tries)
 
 		if (currSkillLevel != skills[skill].level) {
 			std::ostringstream ss;
-			ss << "You advanced to " << getSkillName(skill) << " level " << skills[skill].level << '.';
+			ss << "You advanced in " << getSkillName(skill) << '.';
 			sendTextMessage(MESSAGE_EVENT_ADVANCE, ss.str());
 		}
 

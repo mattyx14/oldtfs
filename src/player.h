@@ -133,12 +133,6 @@ class Player final : public Creature, public Cylinder
 			return CREATURETYPE_PLAYER;
 		}
 
-		void sendFYIBox(const std::string& message) {
-			if (client) {
-				client->sendFYIBox(message);
-			}
-		}
-
 		void setGUID(uint32_t guid) {
 			this->guid = guid;
 		}
@@ -207,6 +201,13 @@ class Player final : public Creature, public Cylinder
 
 		bool isInWar(const Player* player) const;
 		bool isInWarList(uint32_t guildId) const;
+
+		bool hasRequestedOutfit() const {
+			return requestedOutfit;
+		}
+		void hasRequestedOutfit(bool newValue) {
+			requestedOutfit = newValue;
+		}
 
 		uint16_t getClientIcons() const;
 
@@ -878,11 +879,6 @@ class Player final : public Creature, public Cylinder
 				client->sendChannel(channelId, channelName);
 			}
 		}
-		void sendAddMarker(const Position& pos, uint8_t markType, const std::string& desc) {
-			if (client) {
-				client->sendAddMarker(pos, markType, desc);
-			}
-		}
 		void sendFightModes() {
 			if (client) {
 				client->sendFightModes();
@@ -1040,8 +1036,6 @@ class Player final : public Creature, public Cylinder
 		uint32_t manaMax = 0;
 		int32_t varSkills[SKILL_LAST + 1] = {};
 		int32_t varStats[STAT_LAST + 1] = {};
-		int32_t purchaseCallback = -1;
-		int32_t saleCallback = -1;
 		int32_t MessageBufferCount = 0;
 		int32_t premiumDays = 0;
 		int32_t bloodHitCount = 0;
@@ -1068,6 +1062,7 @@ class Player final : public Creature, public Cylinder
 
 		bool chaseMode = false;
 		bool secureMode = false;
+		bool requestedOutfit = false;
 		bool ghostMode = false;
 		bool pzLocked = false;
 		bool isConnecting = false;

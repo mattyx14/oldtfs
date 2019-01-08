@@ -555,6 +555,8 @@ class LuaScriptInterface
 
 		static int luaGameReload(lua_State* L);
 
+		static int luaGameSendAnimatedText(lua_State* L);
+
 		// Variant
 		static int luaVariantCreate(lua_State* L);
 
@@ -901,6 +903,8 @@ class LuaScriptInterface
 
 		static int luaPlayerGetParty(lua_State* L);
 
+		static int luaPlayerSendOutfitWindow(lua_State* L);
+
 		static int luaPlayerGetPremiumDays(lua_State* L);
 		static int luaPlayerAddPremiumDays(lua_State* L);
 		static int luaPlayerRemovePremiumDays(lua_State* L);
@@ -914,10 +918,7 @@ class LuaScriptInterface
 		static int luaPlayerForgetSpell(lua_State* L);
 		static int luaPlayerHasLearnedSpell(lua_State* L);
 
-		static int luaPlayerAddMapMark(lua_State* L);
-
 		static int luaPlayerSave(lua_State* L);
-		static int luaPlayerPopupFYI(lua_State* L);
 
 		static int luaPlayerIsPzLocked(lua_State* L);
 
